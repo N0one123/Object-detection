@@ -46,26 +46,30 @@
         }
 
         async function detectObjects() {
+            console.log("Loading model...");
             const model = await cocoSsd.load();
+            console.log("Model loaded successfully!");
+
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             
             async function detectFrame() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
                 const predictions = await model.detect(video);
+                console.log("Predictions:", predictions);
                 
                 predictions.forEach(pred => {
-                    // Draw bounding box
                     ctx.beginPath();
                     ctx.rect(...pred.bbox);
                     ctx.lineWidth = 2;
                     ctx.strokeStyle = "red";
                     ctx.stroke();
                     
-                    // Draw label
                     ctx.fillStyle = "red";
                     ctx.font = "16px Arial";
-                    ctx.fillText(pred.class, pred.bbox[0], pred.bbox[1] - 5);
+                    ctx.fillText(`${pred.class} (${Math.round(pred.score * 100)}%)`, pred.bbox[0], pred.bbox[1] - 5);
                 });
                 requestAnimationFrame(detectFrame);
             }
@@ -75,7 +79,7 @@
         document.addEventListener("DOMContentLoaded", async () => {
             await setupCamera();
             video.play();
-            detectObjects();
+            setTimeout(detectObjects, 2000);
         });
     </script>
 </body>
