@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Object Detection</title>
+    <style>
+        video, canvas {
+            width: 100%;
+            max-width: 600px;
+            display: block;
+            margin: auto;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+</head>
+<body>
+    <h1 align="center">Live Object Detection</h1>
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        async function setupCamera() {
+    try {
+        const constraints = {
+            video: {
+                facingMode: "environment",
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            }
+        };
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        video.srcObject = stream;
+        return new Promise(resolve => {
+            video.onloadedmetadata = () => resolve(video);
+        });
+    } catch (error) {
+        console.error("Camera access denied:", error);
+        alert("Please enable camera permissions in Safari settings.");
+    }
+}
+
+
+        async function detectObjects() {
+            const model = await cocoSsd.load();
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            async function detectFrame() {
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const predictions = await model.detect(video);
+                
+                predictions.forEach(pred => {
+                    ctx.beginPath();
+                    ctx.rect(...pred.bbox);
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = "red";
+                    ctx.fillStyle = "red";
+                    ctx.stroke();
+                    ctx.fillText(pred.class, pred.bbox[0], pred.bbox[1] - 5);
+                });
+                requestAnimationFrame(detectFrame);
+            }
+            detectFrame();
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            await setupCamera();
+            video.play();
+            detectObjects();
+        });
+    </script>
+</body>
+</html>
