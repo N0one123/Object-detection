@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YOLO Object Detection</title>
+    <title>YOLOv8 Object Detection</title>
     <style>
         video, canvas {
             width: 100%;
@@ -23,13 +23,10 @@
             border: 1px solid black;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web"></script>
 </head>
 <body>
-    <h1 align="center">Live Object Detection with YOLO (TF.js)</h1>
+    <h1 align="center">Live Object Detection with YOLOv8</h1>
     <video id="video" autoplay playsinline></video>
     <canvas id="canvas"></canvas>
     <div id="log"></div>
@@ -38,7 +35,6 @@
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         const logDiv = document.getElementById('log');
-        let model;
         let session;
 
         function logMessage(message) {
@@ -67,13 +63,6 @@
             }
         }
 
-        async function loadModel() {
-            logMessage("Loading YOLO (COCO-SSD) model...");
-            model = await cocoSsd.load();
-            logMessage("Model loaded successfully!");
-            detectObjects();
-        }
-
         async function loadYOLOv8() {
             try {
                 session = await ort.InferenceSession.create("https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.onnx");
@@ -91,20 +80,9 @@
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 
-                const predictions = await model.detect(video);
-                logMessage("Predictions: " + JSON.stringify(predictions));
+                // Placeholder for ONNX inference logic
+                logMessage("Running YOLOv8 inference...");
                 
-                predictions.forEach(pred => {
-                    ctx.beginPath();
-                    ctx.rect(...pred.bbox);
-                    ctx.lineWidth = 2;
-                    ctx.strokeStyle = "red";
-                    ctx.stroke();
-                    
-                    ctx.fillStyle = "red";
-                    ctx.font = "16px Arial";
-                    ctx.fillText(`${pred.class} (${Math.round(pred.score * 100)}%)`, pred.bbox[0], pred.bbox[1] - 5);
-                });
                 requestAnimationFrame(detectFrame);
             }
             detectFrame();
@@ -113,8 +91,8 @@
         document.addEventListener("DOMContentLoaded", async () => {
             await setupCamera();
             video.play();
-            await loadModel();
             await loadYOLOv8();
+            await detectObjects();
         });
     </script>
 </body>
