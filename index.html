@@ -11,6 +11,17 @@
             display: block;
             margin: auto;
         }
+        #log {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background: white;
+            color: black;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid black;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
@@ -19,10 +30,17 @@
     <h1 align="center">Live Object Detection</h1>
     <video id="video" autoplay playsinline></video>
     <canvas id="canvas"></canvas>
+    <div id="log"></div>
     <script>
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
+        const logDiv = document.getElementById('log');
+
+        function logMessage(message) {
+            logDiv.innerHTML += `<p>${message}</p>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
 
         async function setupCamera() {
             try {
@@ -40,15 +58,15 @@
                     video.onloadedmetadata = () => resolve(video);
                 });
             } catch (error) {
-                console.error("Camera access denied:", error);
+                logMessage("Camera access denied: " + error);
                 alert("Please enable camera permissions in Safari settings.");
             }
         }
 
         async function detectObjects() {
-            console.log("Loading model...");
+            logMessage("Loading model...");
             const model = await cocoSsd.load();
-            console.log("Model loaded successfully!");
+            logMessage("Model loaded successfully!");
 
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
@@ -58,7 +76,7 @@
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 
                 const predictions = await model.detect(video);
-                console.log("Predictions:", predictions);
+                logMessage("Predictions: " + JSON.stringify(predictions));
                 
                 predictions.forEach(pred => {
                     ctx.beginPath();
