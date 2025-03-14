@@ -83,8 +83,25 @@
                 // Placeholder for ONNX inference logic
                 logMessage("Running YOLOv8 inference...");
                 
+                // Simulated object detection output
+                const detections = [
+                    { label: "Person", bbox: [100, 150, 50, 100], confidence: 0.9 },
+                    { label: "Car", bbox: [200, 100, 80, 60], confidence: 0.8 }
+                ];
+                
+                detections.forEach(pred => {
+                    ctx.beginPath();
+                    ctx.rect(...pred.bbox);
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = "red";
+                    ctx.stroke();
+                    
+                    ctx.fillStyle = "red";
+                    ctx.font = "16px Arial";
+                    ctx.fillText(`${pred.label} (${Math.round(pred.confidence * 100)}%)`, pred.bbox[0], pred.bbox[1] - 5);
+                });
+                
                 requestAnimationFrame(detectFrame);
-                setTimeout(1000);
             }
             detectFrame();
         }
