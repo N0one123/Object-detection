@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Object Detection</title>
+    <title>YOLO Object Detection</title>
     <style>
         video, canvas {
             width: 100%;
@@ -24,10 +24,11 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/yolo"></script>
 </head>
 <body>
-    <h1 align="center">Live Object Detection</h1>
+    <h1 align="center">Live Object Detection with YOLO</h1>
     <video id="video" autoplay playsinline></video>
     <canvas id="canvas"></canvas>
     <div id="log"></div>
@@ -51,7 +52,7 @@
                         height: { ideal: 720 }
                     }
                 };
-
+                
                 const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 video.srcObject = stream;
                 return new Promise(resolve => {
@@ -64,9 +65,9 @@
         }
 
         async function detectObjects() {
-            logMessage("Loading model...");
-            const model = await cocoSsd.load();
-            logMessage("Model loaded successfully!");
+            logMessage("Loading YOLO model...");
+            const model = await yolo.load();
+            logMessage("YOLO model loaded successfully!");
 
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
