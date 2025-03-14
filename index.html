@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YOLO Object Detection</title>
+    <title>YOLOv8 Object Detection</title>
     <style>
         video, canvas {
             width: 100%;
@@ -25,10 +25,10 @@
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/yolo"></script>
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web"></script>
 </head>
 <body>
-    <h1 align="center">Live Object Detection with YOLO</h1>
+    <h1 align="center">Live Object Detection with YOLOv8</h1>
     <video id="video" autoplay playsinline></video>
     <canvas id="canvas"></canvas>
     <div id="log"></div>
@@ -37,6 +37,7 @@
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         const logDiv = document.getElementById('log');
+        let session;
 
         function logMessage(message) {
             logDiv.innerHTML += `<p>${message}</p>`;
@@ -64,10 +65,17 @@
             }
         }
 
+        async function loadYOLO() {
+            logMessage("Loading YOLOv8 model...");
+            session = await ort.InferenceSession.create("https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.onnx");
+            logMessage("YOLOv8 model loaded successfully!");
+        }
+
         async function detectObjects() {
-            logMessage("Loading YOLO model...");
-            const model = await yolo.load();
-            logMessage("YOLO model loaded successfully!");
+            if (!session) {
+                logMessage("Model not loaded yet!");
+                return;
+            }
 
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
@@ -76,20 +84,13 @@
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 
-                const predictions = await model.detect(video);
-                logMessage("Predictions: " + JSON.stringify(predictions));
+                // Convert image to tensor
+                const imageTensor = tf.browser.fromPixels(video).toFloat().expandDims(0);
                 
-                predictions.forEach(pred => {
-                    ctx.beginPath();
-                    ctx.rect(...pred.bbox);
-                    ctx.lineWidth = 2;
-                    ctx.strokeStyle = "red";
-                    ctx.stroke();
-                    
-                    ctx.fillStyle = "red";
-                    ctx.font = "16px Arial";
-                    ctx.fillText(`${pred.class} (${Math.round(pred.score * 100)}%)`, pred.bbox[0], pred.bbox[1] - 5);
-                });
+                // Run inference
+                const results = await session.run({ "images": imageTensor });
+                logMessage("Predictions: " + JSON.stringify(results));
+                
                 requestAnimationFrame(detectFrame);
             }
             detectFrame();
@@ -98,6 +99,7 @@
         document.addEventListener("DOMContentLoaded", async () => {
             await setupCamera();
             video.play();
+            await loadYOLO();
             setTimeout(detectObjects, 2000);
         });
     </script>
