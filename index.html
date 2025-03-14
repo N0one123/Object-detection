@@ -38,8 +38,11 @@
         let session;
 
         function logMessage(message) {
-            logDiv.innerHTML += `<p>${message}</p>`;
-            logDiv.scrollTop = logDiv.scrollHeight;
+            setTimeout(() => {
+                logDiv.innerHTML += `<p>${message}</p>`;
+                logDiv.scrollTop = logDiv.scrollHeight;
+                console.log(message);
+            }, 500); // Adds a 500ms delay before logging
         }
 
         async function setupCamera() {
@@ -77,7 +80,6 @@
             canvas.height = video.videoHeight;
             
             async function detectFrame() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 
                 // Placeholder for ONNX inference logic
@@ -90,25 +92,23 @@
                 ];
                 
                 detections.forEach(pred => {
+                    const [x, y, width, height] = pred.bbox;
                     ctx.beginPath();
-                    ctx.rect(...pred.bbox);
+                    ctx.rect(x, y, width, height);
                     ctx.lineWidth = 2;
                     ctx.strokeStyle = "red";
                     ctx.stroke();
                     
                     ctx.fillStyle = "red";
                     ctx.font = "16px Arial";
-                    ctx.fillText(`${pred.label} (${Math.round(pred.confidence * 100)}%)`, pred.bbox[0], pred.bbox[1] - 5);
+                    ctx.fillText(`${pred.label} (${Math.round(pred.confidence * 100)}%)`, x, y - 5);
                 });
-                
-                requestAnimationFrame(detectFrame);
             }
             detectFrame();
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
             await setupCamera();
-            video.play();
             await loadYOLOv8();
             await detectObjects();
         });
