@@ -22,6 +22,19 @@
             overflow-y: auto;
             border: 1px solid black;
         }
+        #console {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: black;
+            color: lime;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid lime;
+            width: 300px;
+            font-family: monospace;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
@@ -31,17 +44,21 @@
     <video id="video" autoplay playsinline></video>
     <canvas id="canvas"></canvas>
     <div id="log"></div>
+    <div id="console"></div>
     <script>
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         const logDiv = document.getElementById('log');
+        const consoleDiv = document.getElementById('console');
         let model;
 
         function logMessage(message) {
             setTimeout(() => {
                 logDiv.innerHTML += `<p>${message}</p>`;
                 logDiv.scrollTop = logDiv.scrollHeight;
+                consoleDiv.innerHTML += `<p>${message}</p>`;
+                consoleDiv.scrollTop = consoleDiv.scrollHeight;
                 console.log(message);
             }, 500);
         }
@@ -103,6 +120,8 @@
                     ctx.fillStyle = "red";
                     ctx.font = "16px Arial";
                     ctx.fillText(text, x, y - 5);
+                    
+                    logMessage(`Detected: ${text} at [${x}, ${y}, ${width}, ${height}]`);
                 });
                 requestAnimationFrame(detectFrame);
             }
