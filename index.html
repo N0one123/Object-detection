@@ -23,7 +23,7 @@
             border: 1px solid black;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0"></script>
 </head>
 <body>
     <h1 align="center">Live Object Detection with YOLOv8. IN DEVELOPMENT</h1>
@@ -42,7 +42,7 @@
                 logDiv.innerHTML += `<p>${message}</p>`;
                 logDiv.scrollTop = logDiv.scrollHeight;
                 console.log(message);
-            }, 500); // Adds a 500ms delay before logging
+            }, 500);
         }
 
         async function setupCamera() {
@@ -72,10 +72,13 @@
 
         async function loadYOLOv8() {
             try {
+                ort.env.wasm.proxy = true;
                 ort.env.wasm.numThreads = 1;
-                ort.env.wasm.simd = true;
-                ort.env.webgl = true;
-                session = await ort.InferenceSession.create("https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.onnx");
+                ort.env.wasm.simd = false;
+
+                session = await ort.InferenceSession.create("https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.onnx", {
+                    executionProviders: ["cpu"]
+                });
                 logMessage("YOLOv8 model loaded successfully!");
             } catch (error) {
                 logMessage("Error loading YOLOv8 model: " + error);
