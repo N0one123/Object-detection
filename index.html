@@ -103,30 +103,34 @@
             canvas.height = video.videoHeight;
             
             async function detectFrame() {
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                
-                const predictions = await model.detect(video);
-                
-                predictions.forEach(prediction => {
-                    const [x, y, width, height] = prediction.bbox;
-                    const text = `${prediction.class} (${Math.round(prediction.score * 100)}%)`;
-                    
-                    ctx.beginPath();
-                    ctx.rect(x, y, width, height);
-                    ctx.lineWidth = 2;
-                    ctx.strokeStyle = "red";
-                    ctx.stroke();
-                    
-                    ctx.fillStyle = "red";
-                    ctx.font = "16px Arial";
-                    ctx.fillText(text, x, y - 5);
-                    
-                    logMessage(`Detected: ${text} at [${x}, ${y}, ${width}, ${height}]`);
-                });
-                requestAnimationFrame(detectFrame);
-            }
-            detectFrame();
-        }
+    // Draw the video frame first
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // Get predictions from the model
+    const predictions = await model.detect(video);
+    
+    predictions.forEach(prediction => {
+        const [x, y, width, height] = prediction.bbox;
+        const text = `${prediction.class} (${Math.round(prediction.score * 100)}%)`;
+
+        // Draw the bounding box
+        ctx.beginPath();
+        ctx.rect(x, y, width, height);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "red";
+        ctx.stroke();
+
+        // Draw the label
+        ctx.fillStyle = "red";
+        ctx.font = "16px Arial";
+        ctx.fillText(text, x, y - 5);
+
+        logMessage(`Detected: ${text} at [${x}, ${y}, ${width}, ${height}]`);
+    });
+
+    requestAnimationFrame(detectFrame);
+}
+
 
         document.addEventListener("DOMContentLoaded", async () => {
             await setupCamera();
