@@ -73,8 +73,8 @@
         async function loadYOLOv8() {
             try {
                 ort.env.wasm.numThreads = 1;
-                ort.env.wasm.simd = false;
-                ort.env.webgl = false;
+                ort.env.wasm.simd = true;
+                ort.env.webgl = true;
                 session = await ort.InferenceSession.create("https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.onnx");
                 logMessage("YOLOv8 model loaded successfully!");
             } catch (error) {
