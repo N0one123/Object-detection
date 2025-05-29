@@ -98,39 +98,50 @@
             }
         }
 
-        async function detectObjects() {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            
-            async function detectFrame() {
-    // Draw the video frame first
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    // Get predictions from the model
-    const predictions = await model.detect(video);
+async function detectObjects() {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
     
-    predictions.forEach(prediction => {
-        const [x, y, width, height] = prediction.bbox;
-        const text = `${prediction.class} (${Math.round(prediction.score * 100)}%)`;
+    async function detectFrame() {
+        if (!model || video.readyState !== 4) {
+            // Wait until model and video are ready
+            requestAnimationFrame(detectFrame);
+            return;
+        }
 
-        // Draw the bounding box
-        ctx.beginPath();
-        ctx.rect(x, y, width, height);
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = "red";
-        ctx.stroke();
+        // Draw the video frame first
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        // Draw the label
-        ctx.fillStyle = "red";
-        ctx.font = "16px Arial";
-        ctx.fillText(text, x, y - 5);
+        // Get predictions from the model
+        const predictions = await model.detect(video);
 
-        logMessage(`Detected: ${text} at [${x}, ${y}, ${width}, ${height}]`);
-    });
+        // Clear canvas before drawing boxes (optional, since we redraw video)
+        // ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    requestAnimationFrame(detectFrame);
+        predictions.forEach(prediction => {
+            const [x, y, width, height] = prediction.bbox;
+            const text = `${prediction.class} (${Math.round(prediction.score * 100)}%)`;
+
+            // Draw the bounding box
+            ctx.beginPath();
+            ctx.rect(x, y, width, height);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "red";
+            ctx.stroke();
+
+            // Draw the label
+            ctx.fillStyle = "red";
+            ctx.font = "16px Arial";
+            ctx.fillText(text, x, y - 5);
+
+            logMessage(`Detected: ${text} at [${x}, ${y}, ${width}, ${height}]`);
+        });
+
+        requestAnimationFrame(detectFrame);
+    }
+
+    detectFrame();  // <<-- This line was missing
 }
-
 
         document.addEventListener("DOMContentLoaded", async () => {
             await setupCamera();
